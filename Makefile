@@ -18,8 +18,16 @@ endif
 all: setup
 	cd po && make update-po
 	for locale in `cat po/LINGUAS`; do \
-		mkdir -p ${CAMPAIGN}/translations/$${locale}/LC_MESSAGES ;\
-		cp po/$${locale}.gmo ${CAMPAIGN}/translations/$${locale}/LC_MESSAGES/${DOMAIN}.mo ;\
+		if test -f po/$${locale}.gmo; then \
+			mkdir -p ${CAMPAIGN}/translations/$${locale}/LC_MESSAGES ;\
+			cp po/$${locale}.gmo ${CAMPAIGN}/translations/$${locale}/LC_MESSAGES/${DOMAIN}.mo ;\
+		else \
+			rm -f ${CAMPAIGN}/translations/$${locale}/LC_MESSAGES/${DOMAIN}.mo; \
+			if test -d ${CAMPAIGN}/translations/$${locale}; then \
+				rmdir ${CAMPAIGN}/translations/$${locale}/LC_MESSAGES; \
+				rmdir ${CAMPAIGN}/translations/$${locale}; \
+			fi; \
+		fi; \
 	done
 	cd po && make clean
 
@@ -45,8 +53,11 @@ setup:
 		-e "s/@CATALOGS@/${CATALOGS}/" \
 		-e "/Makevars gets inserted here/ r po/Makevars"
 
+mostlyclean:
+	-cd po && make mostlyclean
+
 clean:
-	-cd po && make distclean && rm -f stamp-po
+	-cd po && make distclean
 	rm -f config.status
 
 realclean: clean
